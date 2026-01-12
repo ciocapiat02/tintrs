@@ -11,5 +11,5 @@ pub fn hex_to_rgb(hex_value: &str) -> image::Rgb<u8> {
     let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0);
     let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0);
     
-    image::Rgb([b, g, r])
+    image::Rgb([r, g, b])
 }
