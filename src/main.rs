@@ -1,5 +1,9 @@
 use clap::Parser;
 
+mod colorscheme;
+mod effect;
+mod format_converter;
+
 #[derive(Parser, Debug)]
 #[command(version, about, long_about=None)]
 struct Args {
