@@ -4,9 +4,9 @@ mod effect;
 mod format_converter;
 
 use args::Args;
-use format_converter::{rgb_to_hex, hex_to_rgb};
-use std::any::Any;
-use image::{DynamicImage, GenericImageView, ImageBuffer, ImageReader, RgbaImage};
+use format_converter::{hex_to_rgb};
+use colorscheme::Colorscheme;
+use image::{ImageBuffer, ImageReader};
 use yaml_rust2::{YamlLoader};
 use clap::Parser;
 
@@ -47,26 +47,19 @@ fn main() {
         .expect(&format!("Could not decode image: {}", args.input))
         .to_rgb8();
 
-    let mut output_image = input_image.clone();
-
-    for (_x, _y, pixel) in output_image.enumerate_pixels_mut() {
-            *pixel = image::Rgb([125,125,125]);
-    }
-
+    let mut output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = ImageBuffer::new(input_image.dimensions().0, input_image.dimensions().1);
     if args.action == "extract" {
         println!("Extracting {} colors from {} and saving to {}", args.length, args.input, args.output);
         // Call extract function here
     }
 
     else if args.action == "apply" {
-        if let Some(colorscheme) = args.colorscheme {
-            let colorscheme = load_colorscheme(&colorscheme);
-            dbg!(colorscheme);
-            //println!("Applying colorscheme {} from {} to {} and saving to {}", &colorscheme, args.input, args.output, args.output);
-            // Call apply function here
-        } else {
-           eprintln!("Colorscheme is required for apply action");
-        }
+        let colorscheme_vec: Vec<image::Rgb<u8>> = match args.colorscheme {
+            Some(colorscheme_path) => load_colorscheme(&colorscheme_path),
+            None => panic!("You need to specify a colorscheme for it to be applyed"),
+        };
+        let colorscheme = Colorscheme::new(colorscheme_vec); 
+        output_image = colorscheme.apply_to_image(&input_image);
     } 
 
     else if args.action == "blur" {
