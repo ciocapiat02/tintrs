@@ -1,11 +1,12 @@
-struct Colorscheme {
-    colors: Vec<u8>,
+use image;
+pub struct Colorscheme {
+    colors: Vec<image::Rgb<u8>>,
 }
 
 impl Colorscheme {
-    pub fn new() -> Self {
+    pub fn new(colorscheme: Vec<image::Rgb<u8>>) -> Self {
         Colorscheme {
-            colors: Vec::new(),
+            colors: colorscheme.clone(),
         }
     }
     pub fn apply_to_mage(){}
