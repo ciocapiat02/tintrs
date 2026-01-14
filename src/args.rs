@@ -28,6 +28,6 @@ pub struct Args {
     pub show: bool,
 
     /// Amount of blur filter
-    #[arg(short, long, default_value_t = 1)]
-    pub blur_amount: u8,
+    #[arg(short, long, default_value_t = 1 as f32)]
+    pub blur_amount: f32,
 }

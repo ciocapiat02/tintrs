@@ -1,11 +1,11 @@
 mod args;
 mod colorscheme;
-mod effect;
 mod format_converter;
 
 use args::Args;
 use format_converter::{hex_to_rgb};
 use colorscheme::Colorscheme;
+use image::imageops::{blur};
 use image::{ImageBuffer, ImageReader};
 use yaml_rust2::{YamlLoader};
 use clap::Parser;
@@ -48,6 +48,7 @@ fn main() {
         .to_rgb8();
 
     let mut output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = ImageBuffer::new(input_image.dimensions().0, input_image.dimensions().1);
+
     if args.action == "extract" {
         println!("Extracting {} colors from {} and saving to {}", args.length, args.input, args.output);
         // Call extract function here
@@ -63,7 +64,7 @@ fn main() {
     } 
 
     else if args.action == "blur" {
-        println!("Applying blur of amount {} to {} and saving to {}", args.blur_amount, args.input, args.output);
+        output_image = blur(&input_image, args.blur_amount);
     }
 
     else {
