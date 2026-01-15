@@ -1,4 +1,5 @@
 use image::{ImageBuffer};
+use rand::Rng;
 use cast::{u32};
 
 pub struct Colorscheme {
@@ -6,11 +7,19 @@ pub struct Colorscheme {
 }
 
 impl Colorscheme {
-    pub fn new(colorscheme: Vec<image::Rgb<u8>>) -> Self {
+    pub fn from_colors(colorscheme: Vec<image::Rgb<u8>>) -> Self {
         Self {
             colors: colorscheme.clone(),
         }
     }
+
+    pub fn from_image(image: &ImageBuffer<image::Rgb<u8>, Vec<u8>>, k: usize, iterations:u32) -> Self {
+        let new_colorscheme = Self::extract_palette_k_means(image, k, iterations);
+        Self {
+            colors: new_colorscheme,
+        }
+    }
+
     pub fn apply_to_image(&self, image: &ImageBuffer<image::Rgb<u8>, Vec<u8>>) -> ImageBuffer<image::Rgb<u8>, Vec<u8>>{
         let mut new_image = image.clone();
 
@@ -40,5 +49,75 @@ impl Colorscheme {
         (color1[1] as i16 - color2[1] as i16).abs()+
         (color1[2] as i16 - color2[2] as i16).abs()).unwrap()
     }
-    fn extract_palette_k_means(){}
+
+    fn extract_palette_k_means(image: &ImageBuffer<image::Rgb<u8>, Vec<u8>>, k: usize, max_iterations: u32) -> Vec<image::Rgb<u8>>{
+        let mut centroids: Vec<image::Rgb<u8>> = Vec::new();
+        let mut rng = rand::rng();
+        let pixels:Vec<&image::Rgb<u8>> = image.pixels().collect();
+        for _ in 0..k {
+            centroids.push(pixels[rng.random_range(0..pixels.len())].clone());
+        }
+
+        for _ in 0..max_iterations {
+            let mut clusters: Vec<Vec<image::Rgb<u8>>> = vec![Vec::new(); k]; 
+            for &pixel in pixels.clone() {
+                let mut min_distance = u32::MAX;
+                let mut min_index = 0;
+                for (i, centroid) in centroids.iter().enumerate() {
+                    let dist = Self::get_color_distance(centroid.clone(), pixel);
+                    if dist < min_distance {
+                        min_distance = dist;
+                        min_index = i;
+                    }
+                }
+                clusters[min_index].push(pixel);
+            }
+
+            let new_centroids: Vec<image::Rgb<u8>> = clusters.iter().enumerate().map(|(_i, cluster)| {
+                if cluster.is_empty() {
+                    return centroids[rng.random_range(0..centroids.len())];
+                }
+
+                let sum: [u32; 3] = cluster.iter().fold([0,0,0], |acc, pixel| {
+                    [acc[0]+pixel[0] as u32, acc[1]+pixel[1] as u32, acc[2]+pixel[2] as u32]
+                });
+
+                let len:u32 = cluster.len() as u32;
+
+                let new_centroid = image::Rgb::from([
+                    (sum[0]/len) as u8,
+                    (sum[1]/len) as u8,
+                    (sum[2]/len) as u8,
+                ]);
+                return new_centroid;
+            }).collect();
+
+            if centroids == new_centroids {
+                break;
+            } else {
+                centroids = new_centroids;
+            }
+        }
+        
+        return centroids;
+    }
+
+    pub fn get_colorscheme(&self) -> &Vec<image::Rgb<u8>> {
+        return &self.colors;
+    }
+
+    pub fn gen_image_from_colorscheme(&self, block_size: u32) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+        let n = self.colors.len() as u32;
+        let width = block_size * n;
+        let height = block_size;
+        
+        let mut image = ImageBuffer::new(width, height);
+        
+        for (x, _y, pixel) in image.enumerate_pixels_mut() {
+            let color_index = (x / block_size) as usize;
+            *pixel = self.colors[color_index];
+        }
+        
+        return image;
+    }
 }

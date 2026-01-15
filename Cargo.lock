@@ -1032,6 +1032,7 @@ dependencies = [
  "cast",
  "clap",
  "image",
+ "rand",
  "yaml-rust2",
 ]
 

@@ -3,7 +3,7 @@ mod colorscheme;
 mod format_converter;
 
 use args::Args;
-use format_converter::{hex_to_rgb};
+use format_converter::{hex_to_rgb, rgb_to_hex};
 use colorscheme::Colorscheme;
 use image::imageops::{blur};
 use image::{ImageBuffer, ImageReader};
@@ -31,6 +31,22 @@ fn load_colorscheme(path: &String) -> Vec<image::Rgb<u8>>{
     return output;
 }
 
+fn save_colorscheme(colorscheme: &Vec<image::Rgb<u8>>, filename: String) {
+    let colors: Vec<String> = colorscheme.iter()
+        .map(|rgb| rgb_to_hex(rgb))
+        .collect();
+    
+    let yaml_content = format!("colorscheme:\n{}", 
+        colors.iter()
+            .map(|c| format!("  - \"{}\"", c))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    
+    std::fs::write(filename.clone(), yaml_content)
+        .expect(&format!("Could not write to file: {}", filename));
+}
+
 fn save_image(image: ImageBuffer<image::Rgb<u8>, Vec<u8>>, path: String) {
     match image.save(path){
         Err(path) => panic!("could not save image to: {}", path),
@@ -41,17 +57,23 @@ fn save_image(image: ImageBuffer<image::Rgb<u8>, Vec<u8>>, path: String) {
 fn main() {
     let args = Args::parse();
     let input_path = args.input.clone(); 
+    println!("opening image: {}", input_path);
     let input_image = ImageReader::open(input_path)
         .expect(&format!("Could not open file: {}", args.input))
         .decode()
         .expect(&format!("Could not decode image: {}", args.input))
         .to_rgb8();
 
-    let mut output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = ImageBuffer::new(input_image.dimensions().0, input_image.dimensions().1);
 
     if args.action == "extract" {
-        println!("Extracting {} colors from {} and saving to {}", args.length, args.input, args.output);
-        // Call extract function here
+        let colorscheme = Colorscheme::from_image(&input_image, args.length, args.iteration_number);
+        let colors = colorscheme.get_colorscheme().clone();
+        save_colorscheme(&colors, args.output);
+        if args.generate_image {
+            let generated_image = colorscheme.gen_image_from_colorscheme(100);
+            save_image(generated_image, String::from("colorscheme.png"));
+        }
+
     }
 
     else if args.action == "apply" {
@@ -59,16 +81,17 @@ fn main() {
             Some(colorscheme_path) => load_colorscheme(&colorscheme_path),
             None => panic!("You need to specify a colorscheme for it to be applyed"),
         };
-        let colorscheme = Colorscheme::new(colorscheme_vec); 
-        output_image = colorscheme.apply_to_image(&input_image);
+        let colorscheme = Colorscheme::from_colors(colorscheme_vec); 
+        let output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = colorscheme.apply_to_image(&input_image);
+        save_image(output_image, args.output);
     } 
 
     else if args.action == "blur" {
-        output_image = blur(&input_image, args.blur_amount);
+        let output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = blur(&input_image, args.blur_amount);
+        save_image(output_image, args.output);
     }
 
     else {
         eprintln!("Unknown action: {}", args.action);
     } 
-    save_image(output_image, args.output);
 }

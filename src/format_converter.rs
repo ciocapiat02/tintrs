@@ -1,5 +1,5 @@
 use image;
-pub fn rgb_to_hex(rgb_value: image::Rgb<u8>) -> String {
+pub fn rgb_to_hex(rgb_value: &image::Rgb<u8>) -> String {
     let [r, g, b] = rgb_value.0;
     format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
