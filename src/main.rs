@@ -10,6 +10,10 @@ use image::{ImageBuffer, ImageReader};
 use yaml_rust2::{YamlLoader};
 use clap::Parser;
 
+fn show_image(path: String) {
+    opener::open(path).expect("Could not open temporary image");
+}
+
 fn load_colorscheme(path: &String) -> Vec<image::Rgb<u8>>{
     let mut output = Vec::new();
 
@@ -57,6 +61,7 @@ fn save_image(image: ImageBuffer<image::Rgb<u8>, Vec<u8>>, path: String) {
 fn main() {
     let args = Args::parse();
     let input_path = args.input.clone(); 
+    let output_path = args.output.clone();
     println!("opening image: {}", input_path);
     let input_image = ImageReader::open(input_path)
         .expect(&format!("Could not open file: {}", args.input))
@@ -68,12 +73,14 @@ fn main() {
     if args.action == "extract" {
         let colorscheme = Colorscheme::from_image(&input_image, args.length, args.iteration_number);
         let colors = colorscheme.get_colorscheme().clone();
-        save_colorscheme(&colors, args.output);
+        save_colorscheme(&colors, output_path);
         if args.generate_image {
             let generated_image = colorscheme.gen_image_from_colorscheme(100);
             save_image(generated_image, String::from("colorscheme.png"));
         }
-
+        if args.show {
+            show_image(String::from("colorscheme.png"));
+        }
     }
 
     else if args.action == "apply" {
@@ -84,11 +91,17 @@ fn main() {
         let colorscheme = Colorscheme::from_colors(colorscheme_vec); 
         let output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = colorscheme.apply_to_image(&input_image);
         save_image(output_image, args.output);
+        if args.show {
+            show_image(output_path);
+        }
     } 
 
     else if args.action == "blur" {
         let output_image: ImageBuffer<image::Rgb<u8>, Vec<u8>> = blur(&input_image, args.blur_amount);
         save_image(output_image, args.output);
+        if args.show {
+            show_image(output_path);
+        }
     }
 
     else {
