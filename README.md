@@ -1,4 +1,4 @@
-# tintrs
+# colorschemify
 A blazingly fast commandline tool written in rust that includes a mix of utilities to play with colorschemes and images.
 
 Current feature list:
@@ -16,7 +16,7 @@ You will need to have rust and cargo installed on your system, you can find inst
 Once you have rust and cargo installed, you can clone this repository and compile the code with the following commands:
 
 ```bash
-git clone https://github.com/ciocapiat02/tintrs.git
+git clone https://github.com/ciocapiat02/colorschemify.git
 cargo build --release
 ```
 
@@ -24,7 +24,7 @@ cargo build --release
 Running the executable with the `-h` flag will get you this list of possible flags:
 
 ```bash
-Usage: tintrs [OPTIONS] <ACTION> <INPUT> <OUTPUT>
+Usage: colorschemify [OPTIONS] <ACTION> <INPUT> <OUTPUT>
 
 Arguments:
   <ACTION>  Action to perform
