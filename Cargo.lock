@@ -302,6 +302,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
+name = "colorschemify"
+version = "0.1.0"
+dependencies = [
+ "cast",
+ "clap",
+ "image",
+ "opener",
+ "rand",
+ "yaml-rust2",
+]
+
+[[package]]
 name = "core2"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1089,18 +1101,6 @@ dependencies = [
  "quick-error",
  "weezl",
  "zune-jpeg 0.4.21",
-]
-
-[[package]]
-name = "tintrs"
-version = "0.1.0"
-dependencies = [
- "cast",
- "clap",
- "image",
- "opener",
- "rand",
- "yaml-rust2",
 ]
 
 [[package]]
